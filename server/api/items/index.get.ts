@@ -1,10 +1,10 @@
 import { eq, desc, and, or, ilike, sql } from 'drizzle-orm'
-import { items, users } from '~~/db/schema'
+import { categories, itemImages, items, locations, rewards, users } from '~~/db/schema'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event) as {
     type?: 'lost' | 'found'
-    category?: string
+    categoryId?: string
     status?: string
     search?: string
     page?: string
@@ -23,8 +23,8 @@ export default defineEventHandler(async (event) => {
     conditions.push(eq(items.type, query.type))
   }
 
-  if (query.category) {
-    conditions.push(eq(items.category, query.category))
+  if (query.categoryId) {
+    conditions.push(eq(items.categoryId, query.categoryId))
   }
 
   if (query.status && ['open', 'claimed', 'resolved', 'closed'].includes(query.status)) {
@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
       or(
         ilike(items.title, `%${query.search}%`),
         ilike(items.description, `%${query.search}%`),
-        ilike(items.location, `%${query.search}%`),
+        ilike(locations.name, `%${query.search}%`),
       ),
     )
   }
@@ -54,12 +54,18 @@ export default defineEventHandler(async (event) => {
       type: items.type,
       title: items.title,
       description: items.description,
-      category: items.category,
-      location: items.location,
+      category: {
+        id: categories.id,
+        name: categories.name,
+      },
+      location: {
+        id: locations.id,
+        name: locations.name,
+      },
       date: items.date,
-      reward: items.reward,
+      reward: rewards.description,
       status: items.status,
-      hasImage: sql<boolean>`${items.image} IS NOT NULL`,
+      hasImage: sql<boolean>`EXISTS (SELECT 1 FROM ${itemImages} WHERE ${itemImages.itemId} = ${items.id})`,
       createdAt: items.createdAt,
       user: {
         id: users.id,
@@ -69,6 +75,9 @@ export default defineEventHandler(async (event) => {
     })
     .from(items)
     .leftJoin(users, eq(items.userId, users.id))
+    .leftJoin(categories, eq(items.categoryId, categories.id))
+    .leftJoin(locations, eq(items.locationId, locations.id))
+    .leftJoin(rewards, eq(items.id, rewards.itemId))
     .where(where)
     .orderBy(desc(items.createdAt))
     .limit(limit)

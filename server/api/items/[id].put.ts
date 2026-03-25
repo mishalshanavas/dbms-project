@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm'
-import { items } from '~~/db/schema'
+import { categories, items, locations, rewards } from '~~/db/schema'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
@@ -34,19 +34,55 @@ export default defineEventHandler(async (event) => {
 
   if (body.title?.trim()) updates.title = body.title.trim()
   if (body.description?.trim()) updates.description = body.description.trim()
-  if (body.category) updates.category = body.category
-  if (body.location?.trim()) updates.location = body.location.trim()
+  if (body.categoryId) updates.categoryId = body.categoryId
+  if (body.locationId) updates.locationId = body.locationId
   if (body.date) updates.date = body.date
-  if (body.reward !== undefined) updates.reward = body.reward?.trim() || null
   if (body.status && ['open', 'claimed', 'resolved', 'closed'].includes(body.status)) {
     updates.status = body.status
   }
 
-  const result = await db
-    .update(items)
-    .set(updates)
-    .where(eq(items.id, id))
-    .returning()
+  if (body.categoryId) {
+    const category = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.id, body.categoryId))
+      .limit(1)
+    if (!category.length) {
+      throw createError({ statusCode: 400, message: 'Invalid category.' })
+    }
+  }
 
-  return result[0]
+  if (body.locationId) {
+    const location = await db
+      .select({ id: locations.id })
+      .from(locations)
+      .where(eq(locations.id, body.locationId))
+      .limit(1)
+    if (!location.length) {
+      throw createError({ statusCode: 400, message: 'Invalid location.' })
+    }
+  }
+
+  const rewardText = body.reward !== undefined && body.reward !== null
+    ? String(body.reward).trim()
+    : undefined
+
+  const updated = await db.transaction(async (tx) => {
+    const result = await tx
+      .update(items)
+      .set(updates)
+      .where(eq(items.id, id))
+      .returning()
+
+    if (rewardText !== undefined) {
+      await tx.delete(rewards).where(eq(rewards.itemId, id))
+      if (rewardText) {
+        await tx.insert(rewards).values({ itemId: id, description: rewardText })
+      }
+    }
+
+    return result[0]
+  })
+
+  return updated
 })

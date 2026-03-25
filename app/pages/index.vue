@@ -106,7 +106,7 @@
             <h3 class="text-sm font-semibold leading-tight line-clamp-1">{{ item.title }}</h3>
             <p class="text-[11px] text-muted-foreground line-clamp-1 flex items-center gap-1">
               <MapPin class="h-3 w-3 shrink-0" />
-              {{ item.location }}
+              {{ item.location?.name || '' }}
             </p>
             <div class="flex items-center justify-between pt-0.5">
               <span class="text-[10px] text-muted-foreground">{{ item.date }}</span>
@@ -145,6 +145,7 @@
 <script setup lang="ts">
 import { Search, Plus, MapPin, Gift, Loader2, Package, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { watchDebounced } from '@vueuse/core'
+import type { CategorySummary, ItemListEntry } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -154,8 +155,9 @@ const searchQuery = ref('')
 const activeType = ref('')
 const activeCategory = ref('')
 const loading = ref(true)
-const itemsList = ref<any[]>([])
+const itemsList = ref<ItemListEntry[]>([])
 const pagination = ref({ page: 1, limit: 20, total: 0, totalPages: 0 })
+const categoriesList = ref<CategorySummary[]>([])
 
 const typeOptions = [
   { label: 'All', value: '' },
@@ -163,10 +165,10 @@ const typeOptions = [
   { label: 'Found', value: 'found' },
 ]
 
-const allCategoryChips = [
+const allCategoryChips = computed(() => [
   { label: 'All', value: '' },
-  ...CATEGORY_OPTIONS,
-]
+  ...categoriesList.value.map((cat) => ({ label: cat.name, value: cat.id })),
+])
 
 function setType(t: string) {
   activeType.value = t
@@ -183,10 +185,10 @@ async function fetchItems(page = 1) {
   try {
     const params: Record<string, string> = { page: String(page) }
     if (activeType.value) params.type = activeType.value
-    if (activeCategory.value) params.category = activeCategory.value
+    if (activeCategory.value) params.categoryId = activeCategory.value
     if (searchQuery.value.trim()) params.search = searchQuery.value.trim()
 
-    const data = await $fetch<any>('/api/items', { params })
+    const data = await $fetch<{ items: ItemListEntry[], pagination: typeof pagination.value }>('/api/items', { params })
     itemsList.value = data.items
     pagination.value = data.pagination
   }
@@ -202,7 +204,19 @@ function goToPage(page: number) {
   fetchItems(page)
 }
 
-onMounted(() => fetchItems())
+async function fetchCategories() {
+  try {
+    categoriesList.value = await $fetch<CategorySummary[]>('/api/categories')
+  }
+  catch {
+    categoriesList.value = []
+  }
+}
+
+onMounted(async () => {
+  await fetchCategories()
+  fetchItems()
+})
 
 watchDebounced(searchQuery, () => fetchItems(), { debounce: 350 })
 </script>

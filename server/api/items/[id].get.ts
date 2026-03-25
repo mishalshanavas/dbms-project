@@ -1,5 +1,5 @@
 import { eq, sql, and } from 'drizzle-orm'
-import { items, users, claims } from '~~/db/schema'
+import { categories, itemImages, items, locations, rewards, users, claims } from '~~/db/schema'
 
 export default defineEventHandler(async (event) => {
   const id = getRouterParam(event, 'id')
@@ -16,11 +16,17 @@ export default defineEventHandler(async (event) => {
       type: items.type,
       title: items.title,
       description: items.description,
-      category: items.category,
-      location: items.location,
+      category: {
+        id: categories.id,
+        name: categories.name,
+      },
+      location: {
+        id: locations.id,
+        name: locations.name,
+      },
       date: items.date,
-      reward: items.reward,
-      image: items.image,
+      reward: rewards.description,
+      hasImage: sql<boolean>`EXISTS (SELECT 1 FROM ${itemImages} WHERE ${itemImages.itemId} = ${items.id})`,
       status: items.status,
       createdAt: items.createdAt,
       user: {
@@ -32,6 +38,9 @@ export default defineEventHandler(async (event) => {
     })
     .from(items)
     .leftJoin(users, eq(items.userId, users.id))
+    .leftJoin(categories, eq(items.categoryId, categories.id))
+    .leftJoin(locations, eq(items.locationId, locations.id))
+    .leftJoin(rewards, eq(items.id, rewards.itemId))
     .where(eq(items.id, id))
     .limit(1)
 

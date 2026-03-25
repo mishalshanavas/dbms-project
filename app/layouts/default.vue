@@ -28,8 +28,13 @@
             class="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground hover:bg-accent cursor-pointer"
             @click="toggleColorMode"
           >
-            <Sun v-if="isDark" class="h-[18px] w-[18px]" />
-            <Moon v-else class="h-[18px] w-[18px]" />
+            <ClientOnly>
+              <Sun v-if="isDark" class="h-[18px] w-[18px]" />
+              <Moon v-else class="h-[18px] w-[18px]" />
+              <template #fallback>
+                <span class="h-[18px] w-[18px]" />
+              </template>
+            </ClientOnly>
           </button>
 
           <template v-if="loggedIn">
@@ -80,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon, Plus, Home, PlusCircle, LayoutDashboard, Shield, LogOut } from 'lucide-vue-next'
+import { Sun, Moon, Plus, Home, PlusCircle, LayoutDashboard, Shield, LogOut, User } from 'lucide-vue-next'
 
 const { loggedIn, user, clear } = useUserSession()
 const colorMode = useColorMode()
@@ -117,6 +122,7 @@ const mobileLinks = computed(() => {
 const userMenu = computed(() => [
   { label: user.value?.email || '', disabled: true },
   { separator: true },
+  { label: 'Profile', icon: User, action: () => navigateTo('/profile') },
   { label: 'Dashboard', icon: LayoutDashboard, action: () => navigateTo('/dashboard') },
   ...(user.value?.isAdmin ? [{ label: 'Admin', icon: Shield, action: () => navigateTo('/admin') }] : []),
   { separator: true },

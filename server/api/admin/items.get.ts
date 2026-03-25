@@ -1,5 +1,5 @@
 import { desc, sql, eq } from 'drizzle-orm'
-import { items, users, claims } from '~~/db/schema'
+import { categories, items, locations, users, claims } from '~~/db/schema'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
@@ -30,8 +30,8 @@ export default defineEventHandler(async (event) => {
       id: items.id,
       type: items.type,
       title: items.title,
-      category: items.category,
-      location: items.location,
+      category: categories.name,
+      location: locations.name,
       status: items.status,
       createdAt: items.createdAt,
       user: {
@@ -43,6 +43,8 @@ export default defineEventHandler(async (event) => {
     })
     .from(items)
     .leftJoin(users, eq(items.userId, users.id))
+    .leftJoin(categories, eq(items.categoryId, categories.id))
+    .leftJoin(locations, eq(items.locationId, locations.id))
     .where(where)
     .orderBy(desc(items.createdAt))
     .limit(limit)

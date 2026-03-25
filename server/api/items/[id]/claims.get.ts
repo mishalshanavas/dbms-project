@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     .select({
       id: claims.id,
       message: claims.message,
-      contactInfo: claims.contactInfo,
+      contactInfo: users.phone,
       status: claims.status,
       createdAt: claims.createdAt,
       claimer: {

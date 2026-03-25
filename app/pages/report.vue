@@ -85,7 +85,7 @@
       <!-- Category -->
       <div class="space-y-2">
         <label for="category" class="text-sm font-medium">Category</label>
-        <UiSelect id="category" v-model="form.category" :options="categoryOptions" required />
+        <UiSelect id="category" v-model="form.categoryId" :options="categoryOptions" :disabled="optionsLoading" required />
       </div>
 
       <!-- Description -->
@@ -104,7 +104,7 @@
       <div class="grid grid-cols-2 gap-3">
         <div class="space-y-2">
           <label for="location" class="text-sm font-medium">Location</label>
-          <UiInput id="location" v-model="form.location" placeholder="e.g. Library" required />
+          <UiSelect id="location" v-model="form.locationId" :options="locationOptions" :disabled="optionsLoading" required />
         </div>
         <div class="space-y-2">
           <label for="date" class="text-sm font-medium">Date</label>
@@ -131,6 +131,7 @@
 
 <script setup lang="ts">
 import { ImagePlus, Loader2, X } from 'lucide-vue-next'
+import type { CategorySummary, LocationSummary } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -149,16 +150,25 @@ const form = reactive({
   type: 'lost' as 'lost' | 'found',
   title: '',
   description: '',
-  category: '',
-  location: '',
+  categoryId: '',
+  locationId: '',
   date: new Date().toISOString().split('T')[0],
   reward: '',
 })
 
-const categoryOptions = [
+const categoriesList = ref<CategorySummary[]>([])
+const locationsList = ref<LocationSummary[]>([])
+const optionsLoading = ref(true)
+
+const categoryOptions = computed(() => [
   { label: 'Select category', value: '' },
-  ...CATEGORY_OPTIONS,
-]
+  ...categoriesList.value.map((cat) => ({ label: cat.name, value: cat.id })),
+])
+
+const locationOptions = computed(() => [
+  { label: 'Select location', value: '' },
+  ...locationsList.value.map((loc) => ({ label: loc.name, value: loc.id })),
+])
 
 function triggerFileInput() {
   fileInput.value?.click()
@@ -197,7 +207,11 @@ function removeImage() {
 }
 
 async function handleSubmit() {
-  if (!form.title.trim() || !form.description.trim() || !form.category || !form.location.trim() || !form.date) {
+  if (optionsLoading.value) {
+    toast({ title: 'Options are still loading', variant: 'destructive' })
+    return
+  }
+  if (!form.title.trim() || !form.description.trim() || !form.categoryId || !form.locationId || !form.date) {
     toast({ title: 'Please fill all required fields', variant: 'destructive' })
     return
   }
@@ -224,4 +238,29 @@ async function handleSubmit() {
     submitting.value = false
   }
 }
+
+async function fetchOptions() {
+  optionsLoading.value = true
+  try {
+    const [cats, locs] = await Promise.all([
+      $fetch<CategorySummary[]>('/api/categories'),
+      $fetch<LocationSummary[]>('/api/locations'),
+    ])
+    categoriesList.value = cats
+    locationsList.value = locs
+  }
+  catch {
+    toast({
+      title: 'Failed to load categories/locations',
+      variant: 'destructive',
+    })
+  }
+  finally {
+    optionsLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchOptions()
+})
 </script>

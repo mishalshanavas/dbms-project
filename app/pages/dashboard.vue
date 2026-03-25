@@ -128,6 +128,7 @@
 
 <script setup lang="ts">
 import { Loader2, Package, Plus, MapPin, ChevronRight, MessageSquare, Check, X, Clock } from 'lucide-vue-next'
+import type { DashboardClaim, DashboardItem } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -137,13 +138,13 @@ const { toast } = useToast()
 
 const loading = ref(true)
 const activeTab = ref('items')
-const myItems = ref<any[]>([])
-const myClaims = ref<any[]>([])
+const myItems = ref<DashboardItem[]>([])
+const myClaims = ref<DashboardClaim[]>([])
 
 async function fetchDashboard() {
   loading.value = true
   try {
-    const data = await $fetch<any>('/api/user/dashboard')
+    const data = await $fetch<{ items: DashboardItem[], claims: DashboardClaim[] }>('/api/user/dashboard')
     myItems.value = data.items
     myClaims.value = data.claims
   }

@@ -51,9 +51,26 @@ export async function initializeDB() {
         email VARCHAR(255) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
         avatar TEXT,
+        phone VARCHAR(30),
         is_admin BOOLEAN NOT NULL DEFAULT false,
         created_at TIMESTAMP NOT NULL DEFAULT now(),
         updated_at TIMESTAMP NOT NULL DEFAULT now()
+      );
+    `)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT now()
+      );
+    `)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS locations (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT now()
       );
     `)
 
@@ -63,15 +80,34 @@ export async function initializeDB() {
         type item_type NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
-        category VARCHAR(100) NOT NULL,
-        location VARCHAR(255) NOT NULL,
+        category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+        location_id UUID NOT NULL REFERENCES locations(id) ON DELETE RESTRICT,
         date VARCHAR(50) NOT NULL,
-        reward VARCHAR(255),
-        image TEXT,
         status item_status NOT NULL DEFAULT 'open',
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP NOT NULL DEFAULT now(),
         updated_at TIMESTAMP NOT NULL DEFAULT now()
+      );
+    `)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS item_images (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        image_data TEXT NOT NULL,
+        mime_type VARCHAR(100) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT now(),
+        UNIQUE (item_id)
+      );
+    `)
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS rewards (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+        description VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT now(),
+        UNIQUE (item_id)
       );
     `)
 
@@ -81,10 +117,37 @@ export async function initializeDB() {
         item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
         claimer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         message TEXT NOT NULL,
-        contact_info VARCHAR(255),
         status claim_status NOT NULL DEFAULT 'pending',
         created_at TIMESTAMP NOT NULL DEFAULT now()
       );
+    `)
+
+    await client.query(`
+      INSERT INTO categories (name)
+      VALUES
+        ('Electronics'),
+        ('Books'),
+        ('Clothing'),
+        ('Accessories'),
+        ('ID Cards'),
+        ('Keys'),
+        ('Bags'),
+        ('Stationery'),
+        ('Other')
+      ON CONFLICT (name) DO NOTHING;
+    `)
+
+    await client.query(`
+      INSERT INTO locations (name)
+      VALUES
+        ('Library'),
+        ('Cafeteria'),
+        ('Hostel'),
+        ('Lab'),
+        ('Office'),
+        ('Parking'),
+        ('ohio')
+      ON CONFLICT (name) DO NOTHING;
     `)
 
     console.log('[DB] Tables initialized successfully')

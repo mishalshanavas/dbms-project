@@ -1,3 +1,4 @@
+// Deprecated: prefer fetching categories from /api/categories.
 export const CATEGORIES = [
   'Electronics',
   'Books',
@@ -12,4 +13,5 @@ export const CATEGORIES = [
 
 export type Category = typeof CATEGORIES[number]
 
+// Deprecated: use DB-backed categories for form options.
 export const CATEGORY_OPTIONS = CATEGORIES.map(c => ({ label: c, value: c }))

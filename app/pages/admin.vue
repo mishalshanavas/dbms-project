@@ -116,6 +116,7 @@ import {
   Loader2, MoreHorizontal, ChevronLeft, ChevronRight,
   Eye, CheckCircle, XCircle, Trash2,
 } from 'lucide-vue-next'
+import type { AdminItem } from '~~/shared/types/items'
 
 definePageMeta({ middleware: ['auth', 'admin'] })
 
@@ -125,7 +126,7 @@ const { toast } = useToast()
 
 const loading = ref(true)
 const activeStatus = ref('')
-const itemsList = ref<any[]>([])
+const itemsList = ref<AdminItem[]>([])
 const stats = ref<any>({})
 const pagination = ref({ page: 1, limit: 50, total: 0, totalPages: 0 })
 
@@ -174,7 +175,7 @@ async function fetchAdmin(page = 1) {
     const params: Record<string, string> = { page: String(page) }
     if (activeStatus.value) params.status = activeStatus.value
 
-    const data = await $fetch<any>('/api/admin/items', { params })
+    const data = await $fetch<{ items: AdminItem[], stats: any, pagination: typeof pagination.value }>('/api/admin/items', { params })
     itemsList.value = data.items
     stats.value = data.stats
     pagination.value = data.pagination

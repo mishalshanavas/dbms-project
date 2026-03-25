@@ -26,7 +26,7 @@
         <!-- Main content — left 3 cols -->
         <div class="lg:col-span-3 space-y-5">
           <!-- Hero image -->
-          <div v-if="item.image" class="overflow-hidden rounded-xl border bg-muted">
+          <div v-if="item.hasImage" class="overflow-hidden rounded-xl border bg-muted">
             <img :src="`/api/items/${item.id}/image`" :alt="item.title" class="w-full object-contain max-h-[420px]" />
           </div>
 
@@ -35,7 +35,7 @@
             <UiBadge :variant="item.type === 'lost' ? 'lost' : 'found'">
               {{ item.type }}
             </UiBadge>
-            <UiBadge variant="outline">{{ item.category }}</UiBadge>
+            <UiBadge variant="outline">{{ item.category?.name }}</UiBadge>
             <UiBadge
               :variant="item.status === 'open' ? 'secondary' : item.status === 'resolved' ? 'success' : 'outline'"
             >
@@ -50,7 +50,7 @@
           <div class="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <span class="flex items-center gap-1.5">
               <MapPin class="h-4 w-4" />
-              {{ item.location }}
+              {{ item.location?.name }}
             </span>
             <span class="flex items-center gap-1.5">
               <Calendar class="h-4 w-4" />
@@ -196,15 +196,6 @@
             required
           />
         </div>
-        <div class="space-y-2">
-          <label class="text-sm font-medium">
-            Contact info <span class="text-muted-foreground font-normal">(optional)</span>
-          </label>
-          <UiInput
-            v-model="claimForm.contactInfo"
-            placeholder="Phone number or where to meet"
-          />
-        </div>
         <div class="flex justify-end gap-2 pt-2">
           <UiButton variant="outline" type="button" @click="claimDialogOpen = false">Cancel</UiButton>
           <UiButton type="submit" :disabled="claimSubmitting">
@@ -222,11 +213,9 @@ import {
   ArrowLeft, MapPin, Calendar, Gift, Loader2, Package,
   MessageSquare, Check, Users, XCircle, Trash2,
 } from 'lucide-vue-next'
+import type { ClaimEntry, ItemDetail } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
-
-const pageTitle = computed(() => item.value?.title ? `${item.value.title} — Lost & Found` : 'Item — Lost & Found')
-useHead({ title: pageTitle })
 
 const route = useRoute()
 const { user } = useUserSession()
@@ -234,16 +223,19 @@ const { toast } = useToast()
 
 const loading = ref(true)
 const error = ref(false)
-const item = ref<any>(null)
+const item = ref<ItemDetail | null>(null)
 const showClaims = ref(false)
-const claimsList = ref<any[]>([])
+const claimsList = ref<ClaimEntry[]>([])
 const claimsLoading = ref(false)
 const alreadyClaimed = ref(false)
+
+const pageTitle = computed(() => item.value?.title ? `${item.value.title} — Lost & Found` : 'Item — Lost & Found')
+useHead({ title: pageTitle })
 
 // Claim form
 const claimDialogOpen = ref(false)
 const claimSubmitting = ref(false)
-const claimForm = reactive({ message: '', contactInfo: '' })
+const claimForm = reactive({ message: '' })
 
 const isOwner = computed(() => item.value?.user?.id === user.value?.id)
 const canClaim = computed(() => {
@@ -254,7 +246,7 @@ const canClaim = computed(() => {
 async function fetchItem() {
   loading.value = true
   try {
-    const data = await $fetch<any>(`/api/items/${route.params.id}`)
+    const data = await $fetch<ItemDetail>(`/api/items/${route.params.id}`)
     item.value = data
     alreadyClaimed.value = data.alreadyClaimed ?? false
   }
@@ -269,7 +261,7 @@ async function fetchItem() {
 async function fetchClaims() {
   claimsLoading.value = true
   try {
-    const data = await $fetch<any[]>(`/api/items/${route.params.id}/claims`)
+    const data = await $fetch<ClaimEntry[]>(`/api/items/${route.params.id}/claims`)
     claimsList.value = data
     alreadyClaimed.value = data.some((c: any) => c.claimer?.id === user.value?.id)
   }
@@ -291,14 +283,13 @@ async function submitClaim() {
   try {
     await $fetch(`/api/items/${route.params.id}/claim`, {
       method: 'POST',
-      body: { message: claimForm.message.trim(), contactInfo: claimForm.contactInfo.trim() || undefined },
+      body: { message: claimForm.message.trim() },
     })
     toast({ title: 'Claim submitted!' })
     claimDialogOpen.value = false
     alreadyClaimed.value = true
     item.value.claimCount++
     claimForm.message = ''
-    claimForm.contactInfo = ''
     if (showClaims.value) fetchClaims()
   }
   catch (err: any) {

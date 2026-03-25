@@ -60,7 +60,6 @@ export default defineEventHandler(async (event) => {
       itemId,
       claimerId: session.user.id,
       message: body.message.trim(),
-      contactInfo: body.contactInfo?.trim() || null,
     })
     .returning()
 

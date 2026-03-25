@@ -1,6 +1,5 @@
-import { eq, desc } from 'drizzle-orm'
-import { items, claims, users } from '~~/db/schema'
-import { sql } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
+import { categories, claims, itemImages, items, locations, rewards } from '~~/db/schema'
 
 export default defineEventHandler(async (event) => {
   const session = await getUserSession(event)
@@ -16,16 +15,19 @@ export default defineEventHandler(async (event) => {
       id: items.id,
       type: items.type,
       title: items.title,
-      category: items.category,
-      location: items.location,
+      category: categories.name,
+      location: locations.name,
       date: items.date,
-      reward: items.reward,
+      reward: rewards.description,
       status: items.status,
-      hasImage: sql<boolean>`${items.image} IS NOT NULL`,
+      hasImage: sql<boolean>`EXISTS (SELECT 1 FROM ${itemImages} WHERE ${itemImages.itemId} = ${items.id})`,
       createdAt: items.createdAt,
       claimCount: sql<number>`(SELECT count(*) FROM claims WHERE claims.item_id = ${items.id})`,
     })
     .from(items)
+    .leftJoin(categories, eq(items.categoryId, categories.id))
+    .leftJoin(locations, eq(items.locationId, locations.id))
+    .leftJoin(rewards, eq(items.id, rewards.itemId))
     .where(eq(items.userId, session.user.id))
     .orderBy(desc(items.createdAt))
 
