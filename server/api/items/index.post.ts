@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm'
-import { categories, itemImages, items, locations, rewards } from '~~/db/schema'
+import { categories, itemImages, items, locations, rewards, users } from '~~/db/schema'
 
 function parseImageDataUrl(dataUrl: string) {
   const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
@@ -62,6 +62,34 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Invalid location.' })
   }
 
+  let effectiveUserId = session.user.id
+  const userById = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1)
+
+  if (!userById.length && session.user.email) {
+    const userByEmail = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, session.user.email))
+      .limit(1)
+    if (userByEmail.length) {
+      effectiveUserId = userByEmail[0]!.id
+      await setUserSession(event, {
+        user: {
+          ...session.user,
+          id: effectiveUserId,
+        },
+      })
+    }
+  }
+
+  if (!userById.length && effectiveUserId === session.user.id) {
+    throw createError({ statusCode: 401, message: 'User profile not found. Please sign in again.' })
+  }
+
   const result = await db.transaction(async (tx) => {
     const created = await tx
       .insert(items)
@@ -73,7 +101,7 @@ export default defineEventHandler(async (event) => {
         locationId: body.locationId,
         date: body.date,
         status: 'open',
-        userId: session.user.id,
+        userId: effectiveUserId,
       })
       .returning()
 

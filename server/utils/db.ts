@@ -140,13 +140,14 @@ export async function initializeDB() {
     await client.query(`
       INSERT INTO locations (name)
       VALUES
-        ('Library'),
-        ('Cafeteria'),
-        ('Hostel'),
-        ('Lab'),
-        ('Office'),
+        ('DB'),
+        ('Decimal Block'),
+        ('BB'),
+        ('Bio Block'),
+        ('MB Main Block'),
         ('Parking'),
-        ('ohio')
+        ('Ground'),
+        ('Shack')
       ON CONFLICT (name) DO NOTHING;
     `)
 

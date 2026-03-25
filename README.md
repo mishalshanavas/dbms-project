@@ -1,6 +1,6 @@
-# Lost & Found — Sahrdaya College
+# Losty — Sahrdaya College
 
-A community platform for reporting and reclaiming lost & found items within Sahrdaya College of Engineering & Technology.
+A community platform for reporting and reclaiming Losty items within Sahrdaya College of Engineering & Technology.
 
 ## Tech Stack
 

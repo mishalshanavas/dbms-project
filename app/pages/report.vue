@@ -135,7 +135,7 @@ import type { CategorySummary, LocationSummary } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
-useHead({ title: 'Report Item — Lost & Found' })
+useHead({ title: 'Report Item — Losty' })
 
 const { compressImage } = useImageCompress()
 const { toast } = useToast()

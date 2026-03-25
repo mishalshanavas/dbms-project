@@ -229,7 +229,7 @@ const claimsList = ref<ClaimEntry[]>([])
 const claimsLoading = ref(false)
 const alreadyClaimed = ref(false)
 
-const pageTitle = computed(() => item.value?.title ? `${item.value.title} — Lost & Found` : 'Item — Lost & Found')
+const pageTitle = computed(() => item.value?.title ? `${item.value.title} — Losty` : 'Item — Losty')
 useHead({ title: pageTitle })
 
 // Claim form

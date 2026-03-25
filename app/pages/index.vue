@@ -149,7 +149,7 @@ import type { CategorySummary, ItemListEntry } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
-useHead({ title: 'Feed — Lost & Found' })
+useHead({ title: 'Feed — Losty' })
 
 const searchQuery = ref('')
 const activeType = ref('')

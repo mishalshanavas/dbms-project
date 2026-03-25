@@ -120,7 +120,7 @@ import type { AdminItem } from '~~/shared/types/items'
 
 definePageMeta({ middleware: ['auth', 'admin'] })
 
-useHead({ title: 'Admin — Lost & Found' })
+useHead({ title: 'Admin — Losty' })
 
 const { toast } = useToast()
 

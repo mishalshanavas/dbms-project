@@ -17,17 +17,18 @@ const SEED_CATEGORIES = [
 ]
 
 const SEED_LOCATIONS = [
-  'Library',
-  'Cafeteria',
-  'Hostel',
-  'Lab',
-  'Office',
+  'DB',
+  'Decimal Block',
+  'BB',
+  'Bio Block',
+  'MB Main Block',
   'Parking',
-  'ohio',
+  'Ground',
+  'Shack',
 ]
 
 const FALLBACK_CATEGORY = 'Other'
-const FALLBACK_LOCATION = 'ohio'
+const FALLBACK_LOCATION = 'Ground'
 
 type BackupShape = {
   exportedAt?: string
@@ -95,7 +96,7 @@ async function main() {
 
     await client.query(`
       CREATE TABLE users (
-        id UUID PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         google_id VARCHAR(255) UNIQUE NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
@@ -125,7 +126,7 @@ async function main() {
 
     await client.query(`
       CREATE TABLE items (
-        id UUID PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         type item_type NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
@@ -162,7 +163,7 @@ async function main() {
 
     await client.query(`
       CREATE TABLE claims (
-        id UUID PRIMARY KEY,
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         item_id UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
         claimer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         message TEXT NOT NULL,

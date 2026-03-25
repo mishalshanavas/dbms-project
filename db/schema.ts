@@ -32,7 +32,7 @@ export const locations = pgTable('locations', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
-// Items table (lost & found listings)
+// Items table (Losty listings)
 export const items = pgTable('items', {
   id: uuid('id').defaultRandom().primaryKey(),
   type: itemTypeEnum('type').notNull(), // 'lost' or 'found'

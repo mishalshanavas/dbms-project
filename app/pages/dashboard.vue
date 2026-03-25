@@ -132,7 +132,7 @@ import type { DashboardClaim, DashboardItem } from '~~/shared/types/items'
 
 definePageMeta({ middleware: 'auth' })
 
-useHead({ title: 'Dashboard — Lost & Found' })
+useHead({ title: 'Dashboard — Losty' })
 
 const { toast } = useToast()
 

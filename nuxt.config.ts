@@ -33,10 +33,10 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: 'Lost & Found — Sahrdaya',
+      title: 'Losty — Sahrdaya',
       htmlAttrs: { lang: 'en' },
       meta: [
-        { name: 'description', content: 'Sahrdaya College Lost & Found Management System' },
+        { name: 'description', content: 'Sahrdaya College Losty Management System' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
       link: [

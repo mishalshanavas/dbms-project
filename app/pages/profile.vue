@@ -37,7 +37,7 @@ import { Loader2 } from 'lucide-vue-next'
 
 definePageMeta({ middleware: 'auth' })
 
-useHead({ title: 'Profile — Lost & Found' })
+useHead({ title: 'Profile — Losty' })
 
 const { user } = useUserSession()
 const { toast } = useToast()

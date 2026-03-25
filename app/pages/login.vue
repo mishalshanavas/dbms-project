@@ -3,7 +3,7 @@
     <div class="w-full max-w-[360px] space-y-8">
       <!-- Logo & heading -->
       <div class="text-center space-y-1.5">
-        <h1 class="text-2xl font-bold tracking-tight">Lost & Found</h1>
+        <h1 class="text-2xl font-bold tracking-tight">Losty</h1>
         <p class="text-sm text-muted-foreground leading-relaxed">
           Sahrdaya College community platform
         </p>
@@ -53,7 +53,7 @@ import { AlertCircle } from 'lucide-vue-next'
 
 definePageMeta({ layout: false })
 
-useHead({ title: 'Sign In — Lost & Found' })
+useHead({ title: 'Sign In — Losty' })
 
 const route = useRoute()
 const error = computed(() => route.query.error)

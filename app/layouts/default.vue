@@ -5,7 +5,7 @@
       <div class="mx-auto flex h-14 max-w-screen-xl items-center justify-between px-4">
         <!-- Left: Logo -->
         <NuxtLink to="/" class="font-semibold tracking-tight text-base">
-          Lost & Found
+          Losty
         </NuxtLink>
 
         <!-- Center: Desktop nav links -->
