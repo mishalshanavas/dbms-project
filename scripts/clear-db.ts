@@ -23,13 +23,11 @@ async function main() {
         rewards,
         claims,
         items,
-        users,
-        categories,
-        locations
+        users
       CASCADE
     `)
     await client.query('COMMIT')
-    console.log('[clear] All tables truncated')
+    console.log('[clear] Truncated data tables (kept categories, locations)')
   }
   catch (err) {
     await client.query('ROLLBACK')

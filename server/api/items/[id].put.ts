@@ -37,8 +37,23 @@ export default defineEventHandler(async (event) => {
   if (body.categoryId) updates.categoryId = body.categoryId
   if (body.locationId) updates.locationId = body.locationId
   if (body.date) updates.date = body.date
-  if (body.status && ['open', 'claimed', 'resolved', 'closed'].includes(body.status)) {
-    updates.status = body.status
+
+  const newStatus = body.status
+  if (newStatus && newStatus !== existing[0].status) {
+    const currentStatus = existing[0].status
+    // User-initiated status changes should be limited
+    if (currentStatus === 'open' && newStatus === 'closed') {
+      updates.status = newStatus // Owner can close their own post
+    }
+    else if (currentStatus === 'claimed' && newStatus === 'resolved') {
+      updates.status = newStatus // Owner can mark as resolved after a claim is accepted
+    }
+    else {
+      throw createError({
+        statusCode: 400,
+        message: `Invalid status transition from '${currentStatus}' to '${newStatus}'.`,
+      })
+    }
   }
 
   if (body.categoryId) {

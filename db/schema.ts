@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, boolean, uuid, pgEnum } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, varchar, boolean, uuid, pgEnum, unique } from 'drizzle-orm/pg-core'
 
 // Enums
 export const itemTypeEnum = pgEnum('item_type', ['lost', 'found'])
@@ -72,4 +72,6 @@ export const claims = pgTable('claims', {
   message: text('message').notNull(), // description of why they're claiming
   status: claimStatusEnum('status').default('pending').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-})
+}, t => ({
+  unq: unique().on(t.itemId, t.claimerId),
+}))
